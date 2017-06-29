@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tic-Tac-Toe by Daniel Liebner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="style.css" />
+<script>
+function main() {
+
+  // Basic helper tools for element selection/manipulation
+  var elementTools = function(selector) {
+
+      this.matchedElements = [];
+
+      switch (typeof selector) {
+
+        case 'string': // get by ID
+          var el = document.getElementById(selector);
+          if (el) this.matchedElements.push(el);
+          break;
+
+        case 'object':
+
+          if (Array.isArray(selector)) {
+            if (selector[0].tagName) {
+              // element array
+              this.matchedElements = selector;
+              break;
+            }
+            if (selector[0] instanceof elementTools) {
+              // array of helper objects
+              for (var i = 0; i < selector.length; i++)
+                this.matchedElements = this.matchedElements.concat(selector[i].matchedElements);
+            }
+          }
+
+          // element passed directly
+          if (selector.tagName) {
+            this.matchedElements.push(selector);
+            break;
+          }
+
+          break;
+
+      }
+
+    },
+    $ = (function(id) {
+      return new elementTools(id);
+    });
+
+  elementTools.prototype = {
+    matchedElements: [],
+    text: function(val) { // change element text
+      this.matchedElements.map(function(el) {
+        var textNode = el.childNodes[0] || (function() {
+          var newNode = document.createTextNode('');
+          el.appendChild(newNode);
+          return newNode;
+        })();
+        textNode.nodeValue = val;
+      });
+      return this;
+    },
+    children: function(filter) { // grab element's children
+      var children = [];
+      this.matchedElements.map(function(el) {
+        for (var i = 0; i < el.childNodes.length; i++) {
+          if (!el.childNodes[i].tagName) continue;
+          if (!filter || el.childNodes[i].tagName.toLowerCase() == filter.toLowerCase())
+            children.push(el.childNodes[i]);
+        }
+      });
+      this.matchedElements = children;
+      return this;
+    },
+    each: function(mapFn) { // map function signature: function(i, el)
+      var i = 0;
+      this.matchedElements.map(function(el) {
+        mapFn(i++, el);
+      });
+      return this;
+    },
+    addClass: function(className) {
+      this.matchedElements.map(function(el) {
+        el.classList.add(className);
+      });
+      return this;
+    },
+    removeClass: function(className) {
+      this.matchedElements.map(function(el) {
+        el.classList.remove(className);
+      });
+      return this;
+    },
+    click: function(clickFn) {
+      this.matchedElements.map(function(el) {
+        el.addEventListener('click', function() {
+          return clickFn.apply(el);
+        });
+      });
+      return this;
+    }
+  };
+
+  class TicTacToe {
+
+    /*
+    	Board square indexes:
+      0 1 2
+      3 4 5
+      6 7 8
+    */
+
+    constructor() {
+
+      var self = this;
+
+      // Set & prepare elements
+      this.$status = $('status');
+      this.$board = $('board');
+      this.$boardSquares = [];
+      // Clicking the restart button restarts the game
+      this.$restartButton = $('restart').click(function() {
+        self.resetGame();
+      });
+
+      // Game init
+      this.$board.children('tbody').children('tr').children('td').each(function(i, el) {
+        var $el = $(el);
+        // Save references to the board square elements
+        self.$boardSquares[i] = $el.click(function() {
+          // Clicking a board square attempts to make a move on this square
+          self.makeMove(i);
+          return false;
+        });
+      });
+
+      this.resetGame();
+
+    }
+
+    /* Reset the game */
+    resetGame() {
+
+      this.gameOver = false;
+      this.$restartButton.text('Start Over');
+      this.playerTurn = 0; // 0 and 1 => Player 1 and Player 2
+      this.moveCount = 0;
+      this.tickedSquares = []; // Keeps track of which squares have been ticked or tacked
+      this.playerMoves = {
+        0: [],
+        1: []
+      }; // Keeps track of individual player moves [Player[SquareIndex]]
+      $(this.$boardSquares).text('').removeClass('strike'); // Clear the board
+      this.renderState();
+
+    }
+
+    /* Update the board based on the current state */
+    renderState() {
+
+      this.$status.text(`Player ${this.playerTurn+1}'s Turn`);
+
+    }
+
+    /* Determine if we have a winner */
+    testWinner() {
+
+      var i, winningMoves;
+
+      for (i in [0, 1]) {
+
+        /* Winning combinations:
+        rows: n+1+1 sequence starting with 0,3,6
+        cols: n+3+3 sequence starting with 0,1,2
+        diag: 0,4,8 or 2,4,6
+        */
+        winningMoves = (function(moves) {
+          // diag
+          if (moves.indexOf(4) !== -1) {
+            if (moves.indexOf(0) !== -1 && moves.indexOf(8) !== -1) return [0, 4, 8];
+            if (moves.indexOf(2) !== -1 && moves.indexOf(6) !== -1) return [2, 4, 6];
+          }
+          for (var i in [0, 1, 2, 3, 6]) {
+            i = +i; // necessary int conversion
+            // rows
+            if ([0, 3, 6].indexOf(i) !== -1 && moves.indexOf(i) !== -1 && moves.indexOf(i + 1) !== -1 && moves.indexOf(i + 2) !== -1) return [i, i + 1, i + 2];
+            // cols
+            if ([0, 1, 2].indexOf(i) !== -1 && moves.indexOf(i) !== -1 && moves.indexOf(i + 3) !== -1 && moves.indexOf(i + 6) !== -1) return [i, i + 3, i + 6];
+          }
+        })(this.playerMoves[i]);
+
+        if (winningMoves) return {
+          player: +i,
+          moves: winningMoves
+        };
+
+      }
+
+      return false;
+
+    }
+
+    /* Set game over state & update UI */
+    endGame() {
+
+      this.gameOver = true;
+      this.$restartButton.text('Play Again!');
+
+    }
+
+    /* Attempt to make a move on a given square */
+    makeMove(squareIndex) {
+
+      // Don't allow moves after game ends / duplicate moves
+      if (this.gameOver || typeof this.tickedSquares[squareIndex] !== 'undefined') return false;
+
+      // Mark square as X or O per current player
+      this.$boardSquares[squareIndex].text(this.playerTurn == 0 ? 'X' : 'O');
+
+      // Record move
+      this.tickedSquares[squareIndex] = this.playerTurn;
+      this.playerMoves[this.playerTurn].push(squareIndex);
+
+      // Do we have a winner?
+      var winnerData = this.testWinner();
+      if (winnerData !== false) {
+
+        this.endGame();
+        this.$status.text(`Player ${(winnerData.player+1)} wins!`);
+        for (var i in winnerData.moves) {
+          this.$boardSquares[winnerData.moves[i]].addClass('strike');
+        }
+
+        return;
+
+      }
+
+      // Draw?
+      if (++this.moveCount >= 9) {
+
+        this.endGame();
+        this.$status.text("Draw!");
+
+        return;
+
+      }
+
+      // Next player's turn
+      this.playerTurn = (this.playerTurn + 1) % 2;
+
+      // Update game
+      this.renderState();
+
+    }
+
+  }
+
+  new TicTacToe();
+
+}
+</script>
+</head>
+<body>
+<div id="game">
+  <h1>Tic-Tac-Toe</h1>
+  <div id="status"></div>
+  <table id="board">
+    <tr>
+      <td></td><td></td><td></td>
+    </tr>
+    <tr>
+      <td></td><td></td><td></td>
+    </tr>
+    <tr>
+      <td></td><td></td><td></td>
+    </tr>
+  </table>
+  <div id="footer">
+    <button id="restart">Start Over</button>
+  </div>
+</div>
+<script>
+  main();
+</script>
+</body>
+</html>
