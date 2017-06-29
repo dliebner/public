@@ -27,6 +27,7 @@ h1 {
 
 button {
   background: none;
+  outline: none;
   border: 2px solid #fff;
   color: #fff;
   padding: 5px 8px;
