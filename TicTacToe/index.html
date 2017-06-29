@@ -93,13 +93,18 @@ function main() {
       });
       return this;
     },
-    click: function(clickFn) {
-      this.matchedElements.map(function(el) {
-        el.addEventListener('click', function() {
-          return clickFn.apply(el);
+    bind: function(events, bindFn) {
+      for( event of events.split(' ') ) {
+        this.matchedElements.map(function(el) {
+          el.addEventListener(event, function() {
+            return clickFn.apply(el);
+          });
         });
-      });
+      }
       return this;
+    },
+    click: function(clickFn) {
+      return this.bind('click', clickFn);
     }
   };
 
@@ -129,7 +134,7 @@ function main() {
       this.$board.children('tbody').children('tr').children('td').each(function(i, el) {
         var $el = $(el);
         // Save references to the board square elements
-        self.$boardSquares[i] = $el.click(function() {
+        self.$boardSquares[i] = $el.bind('mousedown touchstart', function() {
           // Clicking a board square attempts to make a move on this square
           self.makeMove(i);
           return false;
