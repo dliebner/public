@@ -3,6 +3,10 @@ body {
   color: #fff;
 }
 
+body, button {
+  font-size: 5vw;
+}
+
 #game {
   width: 100vw;
   max-width: 720px;
@@ -17,7 +21,7 @@ body {
 }
 
 h1 {
-  font-size: 10vw;
+  font-size: 7vw;
   margin: 0;
 }
 
@@ -28,16 +32,11 @@ button {
   padding: 5px 8px;
   border-radius: 7px;
   cursor: pointer;
-  font-size: 7vw;
 }
 
 button:hover {
   background: rgba(255, 255, 255, 0.15);
   text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
-}
-
-#status {
-  font-size: 7vw;
 }
 
 #board {
@@ -81,12 +80,11 @@ button:hover {
 }
 
 @media only screen and (min-width: 721px) {
-  h1 {
-    font-size: 42px;
+  body, button {
+    font-size: 36px;
   }
-  #status,
-  button {
-    font-size: 29px;
+  h1 {
+    font-size: 50px;
   }
   #board td {
     font-size: 50px;
