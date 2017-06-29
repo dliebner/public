@@ -93,11 +93,11 @@ function main() {
       });
       return this;
     },
-    bind: function(events, bindFn) {
+    bind: function(events, fn) {
       for( event of events.split(' ') ) {
         this.matchedElements.map(function(el) {
           el.addEventListener(event, function() {
-            return clickFn.apply(el);
+            return fn.apply(el);
           });
         });
       }
