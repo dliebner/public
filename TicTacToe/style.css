@@ -27,12 +27,13 @@ h1 {
 
 button {
   background: none;
-  outline: none;
   border: 2px solid #fff;
   color: #fff;
   padding: 5px 8px;
   border-radius: 7px;
   cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
 button:hover {
