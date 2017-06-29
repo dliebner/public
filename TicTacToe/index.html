@@ -94,7 +94,7 @@ function main() {
       return this;
     },
     bind: function(events, fn) {
-      for( event of events.split(' ') ) {
+      for( let event of events.split(' ') ) {
         this.matchedElements.map(function(el) {
           el.addEventListener(event, function() {
             return fn.apply(el);
@@ -174,7 +174,7 @@ function main() {
 
       var i, winningMoves;
 
-      for (i in [0, 1]) {
+      for(let i of [0, 1] ) {
 
         /* Winning combinations:
         rows: n+1+1 sequence starting with 0,3,6
@@ -187,8 +187,7 @@ function main() {
             if (moves.indexOf(0) !== -1 && moves.indexOf(8) !== -1) return [0, 4, 8];
             if (moves.indexOf(2) !== -1 && moves.indexOf(6) !== -1) return [2, 4, 6];
           }
-          for (var i in [0, 1, 2, 3, 6]) {
-            i = +i; // necessary int conversion
+          for (let i of [0, 1, 2, 3, 6]) {
             // rows
             if ([0, 3, 6].indexOf(i) !== -1 && moves.indexOf(i) !== -1 && moves.indexOf(i + 1) !== -1 && moves.indexOf(i + 2) !== -1) return [i, i + 1, i + 2];
             // cols
@@ -197,7 +196,7 @@ function main() {
         })(this.playerMoves[i]);
 
         if (winningMoves) return {
-          player: +i,
+          player: i,
           moves: winningMoves
         };
 
